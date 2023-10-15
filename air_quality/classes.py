@@ -1,38 +1,8 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 from attrs import define, field
-
-
-@define
-class ServiceInfo:
-    name: str
-    url: str
-
-
-@define(order=True)
-class Raster:
-    idp_issueddate: datetime = field(init=False)
-    idp_validtime: datetime = field(init=False)
-    value: str
-    attributes: dict
-
-    def __attrs_post_init__(self):
-        if self.attributes["idp_validtime"] is not None:
-            self.idp_validtime = datetime.fromtimestamp(
-                self.attributes["idp_validtime"] / 1000
-            )  # Time is in milliseconds, convert to seconds
-        if self.attributes["idp_issueddate"] is not None:
-            self.idp_issueddate = datetime.fromtimestamp(
-                self.attributes["idp_issueddate"] / 1000
-            )  # Time is in milliseconds, convert to seconds
-
-
-@define
-class ServiceResult:
-    rasters: list[Raster]
-    content: dict
 
 
 @define
@@ -53,14 +23,74 @@ class Coordinates:
 class Point:
     name: str
     coordinates: Coordinates
-    result: ServiceResult = field(init=False)
 
-    def identify(self, url: str):
+
+@define(order=True)
+class Raster:
+    idp_issueddate: datetime = field(init=False, default=None)
+    idp_validtime: datetime = field(init=False, default=None)
+    value: str
+    attributes: dict
+
+    def __attrs_post_init__(self):
+        if self.attributes["idp_validtime"] is not None:
+            self.idp_validtime = datetime.fromtimestamp(
+                self.attributes["idp_validtime"] / 1000
+            )  # Time is in milliseconds, convert to seconds
+        if self.attributes["idp_issueddate"] is not None:
+            self.idp_issueddate = datetime.fromtimestamp(
+                self.attributes["idp_issueddate"] / 1000
+            )  # Time is in milliseconds, convert to seconds
+
+
+@define
+class IdentifyResult:
+    service_name: str
+    rasters: list[Raster]
+    content: dict
+    url: str
+
+
+@define
+class Service:
+    url: str
+    name: str = field(init=False)
+    start_time: datetime = field(init=False)
+    end_time: datetime = field(init=False)
+    spatial_reference: dict = field(init=False)
+    content: dict = field(init=False)
+
+    def __attrs_post_init__(self):
+        # Add f=json query param to url
+        r = requests.get(self.url, params={"f": "json"})
+        data = r.json()
+
+        self.name = data["name"]
+
+        # Time stamp is Epoch time in milliseconds
+        self.start_time = datetime.fromtimestamp(data["timeInfo"]["timeExtent"][0]/1000, timezone.utc)
+        self.end_time = datetime.fromtimestamp(data["timeInfo"]["timeExtent"][1]/1000, timezone.utc)
+
+        self.spatial_reference = data["spatialReference"]
+
+        self.content = data
+
+        return
+
+
+
+    def identify(self, point: Point) -> IdentifyResult:
         # Get pixel values
         # API: https://mapservices.weather.noaa.gov/raster/rest/services/air_quality/ndgd_apm25_hr01_bc/ImageServer/identify
         # Reference: https://mapservices.weather.noaa.gov/raster/sdk/rest/index.html#/Project_Image_Service/02ss000000pv000000/
 
-        payload ={"geometry": self.coordinates.to_json_str_geometry(),
+        # Construct url to API identify endpoint
+        if self.url.split("/")[-1] == "":
+            url = self.url + "identify"
+        else:
+            url = self.url + "/identify"
+
+        payload ={"geometry": point.coordinates.to_json_str_geometry(),
                 "geometryType": "esriGeometryPoint",
                 "returnGeometry": False,
                 "returnCatalogItems": True,
@@ -71,6 +101,11 @@ class Point:
         r = requests.get(url, params=payload)
 
         data = r.json()
+
+        # Check if error
+        error = data.get("error")
+        if error is not None:
+            return error
 
         # Zip values and rasters
         values_temp = data["properties"]["Values"]
@@ -86,23 +121,48 @@ class Point:
 
         # Count values to see progress
         i = 0
-        for v, r in zipped_values_rasters:
+        for v, ras in zipped_values_rasters:
             # Get rasters and append to list
             raster = Raster(
                 value=v,
-                attributes=r["attributes"],
+                attributes=ras["attributes"],
             )
 
             rasters_list.append(raster)
 
-            print(f"{i} - value: {v}, time_series: {r["attributes"]["idp_time_series"]}")
+            print(f"{i} - value: {v}, time_series: {ras["attributes"]["idp_time_series"]}")
 
             i += 1
 
-        # Sort rasters
-        rasters_list = sorted(rasters_list)
+        return IdentifyResult(service_name=self.name, rasters=rasters_list, content=data, url=r.url)
+    
 
-        # Add identify result to point
-        self.result = ServiceResult(rasters=rasters_list, content=data)
+    def project(self, points: list[Point], in_sr: int = 4326) -> dict:
+        # Construct url to API project endpoint
+        if self.url.split("/")[-1] == "":
+            url = self.url + "project"
+        else:
+            url = self.url + "/project"
 
-        return
+        geometries = [{"x": point.coordinates.x, "y": point.coordinates.y} for point in points]
+
+        geo_param = {"geometrytype": "esriGeometryPoint", "geometries": geometries}
+
+        payload = {
+            "geometries": json.dumps(geo_param),
+            "inSR": in_sr,
+            "outSR": self.spatial_reference["latestWkid"],
+            "f": "json",
+        }
+
+        # Send a GET request
+        r = requests.get(url, params=payload)
+
+        data = r.json()
+
+        # Check if error
+        error = data.get("error")
+        if error is not None:
+            return error
+        else:
+            return data
