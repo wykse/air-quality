@@ -2,7 +2,8 @@ import csv
 import json
 
 import requests
-from classes import Coordinates, Point
+
+from .classes import Coordinates, Point
 
 
 def csv_to_points(path: str) -> list[Point]:

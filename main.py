@@ -1,13 +1,13 @@
 from pathlib import Path
 
-from utils import csv_to_points
+from air_quality.utils import csv_to_points
 
 
 def main():
     # Url to image service
     url = "https://mapservices.weather.noaa.gov/raster/rest/services/air_quality/ndgd_apm25_hr01_bc/ImageServer/identify"
     # Path to the csv file
-    path = Path(__file__).parents[1] / "data" / "points.csv"
+    path = Path(__file__).parent / "data" / "points.csv"
 
     # Get a list of points from csv
     points = csv_to_points(path=path)
