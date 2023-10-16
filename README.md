@@ -36,7 +36,7 @@ Data written to data/output_example.csv
 Plotted output_example.csv
 ```
 
-![Plot example](/assets/images/boxscore.png)
+![Plot example](/assets/images/plot.png)
 
 ## TODO
 - Add logging
