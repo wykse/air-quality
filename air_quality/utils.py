@@ -1,4 +1,5 @@
 import csv
+from pathlib import Path
 
 import pandas as pd
 import plotly.express as px
@@ -85,6 +86,10 @@ def plot_line(path: str):
     title = df["attributes_idp_grb_elem"].unique()[0].strip()
 
     fig = px.line(df, x="idp_validtime", y="value", color="location", title=title)
+
+    # Show figure
     fig.show()
+
+    print(f"Plotted {Path(path).name}")
 
     return fig

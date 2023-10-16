@@ -26,10 +26,17 @@ options:
                         plot output as a line chart
 ```
 
-### Example
+### Example with plot
 ```
-python .\main.py https://mapservices.weather.noaa.gov/raster/rest/services/air_quality/ndgd_apm25_hr01_bc/ImageServer data/example.csv data/output.csv
+python .\main.py https://mapservices.weather.noaa.gov/raster/rest/services/air_quality/ndgd_apm25_hr01_bc/ImageServer data/input_example.csv data/output_example.csv --plot
+
+Requesting values from air_quality/ndgd_apm25_hr01_bc for 3 points...
+100%|████████████████████████████████████████████| 3/3 [00:16<00:00,  5.45s/it]
+Data written to data/output_example.csv
+Plotted output_example.csv
 ```
+
+![Plot example](/assets/images/boxscore.png)
 
 ## TODO
 - Add logging

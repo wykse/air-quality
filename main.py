@@ -29,7 +29,7 @@ def main(args):
     results = []
 
     # Get pixel values from image service for each point
-    print(f"Requesting pixel values from {service.name} for {len(points)} points...")
+    print(f"Requesting values from {service.name} for {len(points)} points...")
     for point in tqdm(points):
         result = service.identify(point)
         results.append(result)
