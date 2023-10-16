@@ -1,2 +1,5 @@
 attrs==23.1.0
+pandas==2.1.1
+plotly==5.17.0
 Requests==2.31.0
+tqdm==4.66.1

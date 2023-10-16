@@ -1,22 +1,57 @@
 import csv
 
-from air_quality.classes import Coordinates, Point
 
+def read_csv_dict(path: str) -> list[dict]:
+    # Initialize an empty list to store the dictionaries
+    data_list = []
 
-def csv_to_points(path: str) -> list[Point]:
-    # List to store the data from the CSV file
-    points = []
-
-    # Open the CSV file and read its content
+    # Read the csv file and parse it into dictionaries
     with open(path, "r") as csvfile:
-        csv_reader = csv.reader(csvfile)
+        # Create a DictReader
+        reader = csv.DictReader(csvfile)
 
-        # SKip the header row
-        next(csv_reader)
+        # Iterate over each row (each row is a dictionary)
+        for row in reader:
+            # Append the row dictionary to the list
+            data_list.append(row)
 
-        # Read and append the remaining rows
-        for row in csv_reader:
-            c = Coordinates(x=row[2], y=row[1])
-            points.append(Point(name=row[0], coordinates=c))
+    return data_list
 
-    return points
+
+def write_dict_csv(data: list[dict], path: str):
+    # Get field names from the dict keys
+    fieldnames = data[0].keys()
+
+    with open(path, "w", newline="", encoding="utf-8") as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        # Write header
+        writer.writeheader()
+
+        # Write data
+        for row in data:
+            writer.writerow(row)
+
+    print(f"Data written to {path}")
+
+
+def flatten_dict(nested_dict: dict, parent_key: str = "", separator: str = "_") -> dict:
+    """Flatten a nested dictionary.
+
+    Args:
+        nested_dict (dict): The nested dictionary to flatten.
+        parent_key (str, optional): The concatenated key of the parent dictionary (used for recursion). Defaults to "".
+        separator (str, optional): The separator to use for joining keys. Defaults to "_".
+
+    Returns:
+        dict: Flattened dictionary.
+    """
+
+    flattened_dict = {}
+    for key, value in nested_dict.items():
+        new_key = parent_key + separator + key if parent_key else key
+        if isinstance(value, dict):
+            flattened_dict.update(flatten_dict(value, new_key, separator))
+        else:
+            flattened_dict[new_key] = value
+    return flattened_dict
