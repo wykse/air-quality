@@ -15,7 +15,11 @@ class Coordinates:
 
     @classmethod
     def from_dict(
-        cls, data: dict, x_fieldname: str, y_fieldname: str, wkid: int = 4326
+        cls,
+        data: dict,
+        x_fieldname: str = "long",
+        y_fieldname: str = "lat",
+        wkid: int = 4326,
     ):
         return cls(x=data.get(x_fieldname), y=data.get(y_fieldname), wkid=wkid)
 
@@ -36,9 +40,9 @@ class Point:
     def from_dict(
         cls,
         data: dict,
-        name_fieldname: str,
-        x_fieldname: str,
-        y_fieldname: str,
+        name_fieldname: str = "name",
+        x_fieldname: str = "long",
+        y_fieldname: str = "lat",
         wkid: int = 4326,
     ):
         return cls(
