@@ -1,6 +1,8 @@
+# Data folders and example data exceptions
 input/*
 !input/input_example.csv
 output/*
+!output/example.csv
 scratch/
 
 # Byte-compiled / optimized / DLL files
