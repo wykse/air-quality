@@ -1,7 +1,6 @@
 input/*
 !input/input_example.csv
 output/*
-!output/output_example.csv
 scratch/
 
 # Byte-compiled / optimized / DLL files
