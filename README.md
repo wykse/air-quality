@@ -1,4 +1,4 @@
-# air_quality
+# air-quality
 Get air quality data from National Weather Service's ArcGIS REST image service, e.g., [air_quality/ndgd_apm25_hr01_bc](https://mapservices.weather.noaa.gov/raster/rest/services/air_quality/ndgd_apm25_hr01_bc/ImageServer).
 
 Read more about [NWS Air Quality Forecast Guidance](https://vlab.noaa.gov/web/osti-modeling/air-quality).
