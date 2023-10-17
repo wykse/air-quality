@@ -1,6 +1,4 @@
-data/*
-!data/input_example.csv
-!data/output_example.csv
+scratch/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
