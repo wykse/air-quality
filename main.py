@@ -66,8 +66,8 @@ def main(args):
 
         # Delay request after first request
         if i_request > 0:
-            # Delay for 5 seconds
-            time.sleep(5)
+            # Delay for x seconds
+            time.sleep(args.delay)
 
         # Get values from image service
         print(
@@ -121,6 +121,13 @@ if __name__ == "__main__":
         "--plot",
         action=argparse.BooleanOptionalAction,
         help="plot output as a line chart",
+    )
+    parser.add_argument(
+        "-d",
+        "--delay",
+        default=2,
+        type=int,
+        help="delay each request in seconds; defaults to 2",
     )
     args = parser.parse_args()
 
