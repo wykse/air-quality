@@ -53,6 +53,8 @@ def main(args):
     ]
 
     # Get pixel values from image service for each point
+    # Keep track of number of requests
+    i_request = 0
     print(f"Requesting values from {service.name} for {len(points)} points...")
     for scratch_filename, point in tqdm(filenames_and_points):
         # Skip point if scratch csv file exists
@@ -61,6 +63,11 @@ def main(args):
                 f"Skipping {point.name} ({point.coordinates.x}, {point.coordinates.y}) because {scratch_filename} in {SCRATCH_DIR}"
             )
             continue
+
+        # Delay request after first request
+        if i_request > 0:
+            # Delay for 5 seconds
+            time.sleep(5)
 
         # Get values from image service
         print(
@@ -71,8 +78,7 @@ def main(args):
         # Write to a csv in scratch dir
         result.to_csv(SCRATCH_DIR / scratch_filename)
 
-        # Delay for 5 seconds
-        time.sleep(5)
+        i_request += 1
 
     # Get all the scratch csvs and combine them
     combine_csv_files(
